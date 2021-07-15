@@ -1,4 +1,4 @@
-package br.com.rchlo.cards.infra.email;
+package br.com.rchlo.notifications.infra.email;
 
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;

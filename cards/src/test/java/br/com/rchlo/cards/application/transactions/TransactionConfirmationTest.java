@@ -4,8 +4,6 @@ import br.com.rchlo.cards.domain.cards.Card;
 import br.com.rchlo.cards.domain.cards.CardBuilder;
 import br.com.rchlo.cards.domain.cards.Customer;
 import br.com.rchlo.cards.domain.transactions.Transaction;
-import br.com.rchlo.cards.infra.email.EmailSender;
-import br.com.rchlo.cards.infra.notifications.NotificationCreator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,16 +16,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class TransactionConfirmationTest {
 
     private TransactionRepository transactionRepository;
-    private NotificationCreator notificationCreator;
-    private EmailSender emailSender;
     private TransactionConfirmation transactionConfirmation;
 
     @BeforeEach
     void setUp() {
         transactionRepository = Mockito.mock(TransactionRepository.class);
-        notificationCreator = Mockito.mock(NotificationCreator.class);
-        emailSender = Mockito.mock(EmailSender.class);
-        transactionConfirmation = new TransactionConfirmation(transactionRepository, notificationCreator, emailSender);
+        transactionConfirmation = new TransactionConfirmation(transactionRepository);
     }
 
     @Test
@@ -39,23 +33,23 @@ class TransactionConfirmationTest {
                 .build();;
         Transaction transaction = new Transaction(new BigDecimal("500"), "Fuzzy Cardigan", card);
         Mockito.when(transactionRepository.findByUuid("1234")).thenReturn(Optional.of(transaction));
-        Mockito.when(notificationCreator.createFor(transaction)).thenReturn("Uma notificação");
+        //Mockito.when(notificationCreator.createFor(transaction)).thenReturn("Uma notificação");
 
         transactionConfirmation.confirm("1234");
 
         assertEquals(Transaction.Status.CONFIRMED, transaction.getStatus());
         assertEquals(new BigDecimal("1000"), card.getAvailableLimit());
 
-        Mockito.verify(notificationCreator).createFor(transaction);
-        Mockito.verify(emailSender).send("ander@son.com", "Nova despesa: Fuzzy Cardigan", "Uma notificação");
+        //Mockito.verify(notificationCreator).createFor(transaction);
+        //Mockito.verify(emailSender).send("ander@son.com", "Nova despesa: Fuzzy Cardigan", "Uma notificação");
     }
 
     @Test
     void shouldThrowWhenTransactionNotFound() {
         assertThrows(TransactionNotFoundException.class, () -> transactionConfirmation.confirm("1234"));
         Mockito.verify(transactionRepository).findByUuid("1234");
-        Mockito.verifyNoInteractions(notificationCreator);
-        Mockito.verifyNoInteractions(emailSender);
+        //Mockito.verifyNoInteractions(notificationCreator);
+        //Mockito.verifyNoInteractions(emailSender);
     }
 
     @Test
@@ -68,7 +62,7 @@ class TransactionConfirmationTest {
 
         assertThrows(InvalidTransactionStatusException.class, () -> transactionConfirmation.confirm("1234"));
 
-        Mockito.verifyNoInteractions(notificationCreator);
-        Mockito.verifyNoInteractions(emailSender);
+        //Mockito.verifyNoInteractions(notificationCreator);
+        //Mockito.verifyNoInteractions(emailSender);
     }
 }

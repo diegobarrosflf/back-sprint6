@@ -1,6 +1,6 @@
-package br.com.rchlo.cards.infra.notifications;
+package br.com.rchlo.notifications.infra.notifications;
 
-import br.com.rchlo.cards.domain.transactions.Transaction;
+import br.com.rchlo.notifications.domain.transactions.Transaction;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
