@@ -5,7 +5,7 @@
     <title>Nova despesa</title>
 </head>
 <body>
-<div style="margin-top: 10px">Olá, ${transaction.card.customer.fullName}!</div>
+<div style="margin-top: 10px">Olá, ${transaction.fullNameCustomer}!</div>
 <div>
     <span>Você teve uma nova despesa.</span>
     <ul>
