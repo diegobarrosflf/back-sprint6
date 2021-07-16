@@ -1,5 +1,6 @@
 package br.com.rchlo.cards.application.transactions;
 
+import br.com.rchlo.cards.configs.StreamConfig;
 import br.com.rchlo.cards.domain.cards.Card;
 import br.com.rchlo.cards.domain.cards.CardBuilder;
 import br.com.rchlo.cards.domain.cards.Customer;
@@ -17,11 +18,13 @@ class TransactionConfirmationTest {
 
     private TransactionRepository transactionRepository;
     private TransactionConfirmation transactionConfirmation;
+    private StreamConfig.ConfirmedTransactionSource confirmedTransactionSource;
 
     @BeforeEach
     void setUp() {
         transactionRepository = Mockito.mock(TransactionRepository.class);
-        transactionConfirmation = new TransactionConfirmation(transactionRepository);
+        confirmedTransactionSource = Mockito.mock(StreamConfig.ConfirmedTransactionSource.class);
+        transactionConfirmation = new TransactionConfirmation(transactionRepository, confirmedTransactionSource);
     }
 
     @Test
@@ -30,31 +33,27 @@ class TransactionConfirmationTest {
         Card card = new CardBuilder()
                 .withAvailableLimit(new BigDecimal("1500"))
                 .withCustomer(customer)
-                .build();;
+                .build();
         Transaction transaction = new Transaction(new BigDecimal("500"), "Fuzzy Cardigan", card);
         Mockito.when(transactionRepository.findByUuid("1234")).thenReturn(Optional.of(transaction));
-        //Mockito.when(notificationCreator.createFor(transaction)).thenReturn("Uma notificação");
+        Mockito.when(confirmedTransactionSource.confirmedTransactionsTopic()).thenReturn(((message, l) -> true));
 
         transactionConfirmation.confirm("1234");
 
         assertEquals(Transaction.Status.CONFIRMED, transaction.getStatus());
         assertEquals(new BigDecimal("1000"), card.getAvailableLimit());
 
-        //Mockito.verify(notificationCreator).createFor(transaction);
-        //Mockito.verify(emailSender).send("ander@son.com", "Nova despesa: Fuzzy Cardigan", "Uma notificação");
     }
 
     @Test
     void shouldThrowWhenTransactionNotFound() {
         assertThrows(TransactionNotFoundException.class, () -> transactionConfirmation.confirm("1234"));
         Mockito.verify(transactionRepository).findByUuid("1234");
-        //Mockito.verifyNoInteractions(notificationCreator);
-        //Mockito.verifyNoInteractions(emailSender);
     }
 
     @Test
     void shouldThrowWhenTransactionAlreadyConfirmed() {
-        Card card = new CardBuilder().build();;
+        Card card = new CardBuilder().build();
         Transaction transaction = new Transaction(new BigDecimal("500"), "Fuzzy Cardigan", card);
         transaction.confirm();
 
@@ -62,7 +61,5 @@ class TransactionConfirmationTest {
 
         assertThrows(InvalidTransactionStatusException.class, () -> transactionConfirmation.confirm("1234"));
 
-        //Mockito.verifyNoInteractions(notificationCreator);
-        //Mockito.verifyNoInteractions(emailSender);
     }
 }
